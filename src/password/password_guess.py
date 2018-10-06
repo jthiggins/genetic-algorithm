@@ -15,7 +15,7 @@ class Password(genetic_algorithm.Individual):
         diff = abs(self._hash_func(str(self)) - self._goal_hash)
         if diff == 0:
             return 1
-        return 1/(diff**10)
+        return 1/(diff**2)
 
     def crossover(self, other: 'Password', p_c: float):
         min_length = min(len(self._char_list), len(other._char_list))
@@ -31,7 +31,7 @@ class Password(genetic_algorithm.Individual):
                 self._char_list[i] = chr(random.randint(97, 122))
 
 
-def attempt_crack(password_hash: int, num_iterations: int, num_chars: int, hash_func: Callable[[str], int]) -> str:
+def guess_password(password_hash: int, num_iterations: int, num_chars: int, hash_func: Callable[[str], int]) -> str:
     """
     Attempts to find the string whose hash matches the given hash via a genetic algorithm.
 
@@ -50,7 +50,7 @@ def attempt_crack(password_hash: int, num_iterations: int, num_chars: int, hash_
             population.append(Password(char_list, password_hash, hash_func))
         return population
 
-    best_gen = genetic_algorithm.run(gen_passwords, num_iterations, 0.6, 0.04)
+    best_gen = genetic_algorithm.run(gen_passwords, num_iterations, 0.7, 0.04, 0.7)
     best_pass = best_gen[0]
     for pw in best_gen:
         if pw.get_fitness() > best_pass.get_fitness():

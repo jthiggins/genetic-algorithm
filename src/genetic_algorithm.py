@@ -27,7 +27,8 @@ class Individual(ABC):
         pass
 
 
-def run(generate: Callable[[], List[Individual]], num_iterations: int, p_c: float, p_m: float) -> List[Individual]:
+def run(generate: Callable[[], List[Individual]], num_iterations: int, p_c: float, p_m: float,
+        p_avoid: float) -> List[Individual]:
     """
     Run the genetic algorithm for the specified number of iterations.
 
@@ -35,13 +36,14 @@ def run(generate: Callable[[], List[Individual]], num_iterations: int, p_c: floa
     :param num_iterations: The number of iterations the genetic algorithm will run for
     :param p_c: The probability that an individual's gene will crossover with another individual's gene
     :param p_m: The probability that an individual's gene will be mutated
+    :param p_avoid: The probability that the best individual in the population will not be selected for breeding
     :return: The last generation of data points
     """
 
     population = generate()
 
     for i in range(num_iterations):
-        ind_1, ind_2 = select(population)
+        ind_1, ind_2 = select(population, p_avoid)
         ind_1.crossover(ind_2, p_c)
         ind_1.mutate(p_m)
         ind_2.mutate(p_m)
@@ -49,24 +51,31 @@ def run(generate: Callable[[], List[Individual]], num_iterations: int, p_c: floa
     return population
 
 
-def select(population: List[Individual]) -> Tuple[Individual, Individual]:
+def select(population: List[Individual], p_avoid: float) -> Tuple[Individual, Individual]:
     """
-    Select two individuals in the given population via roulette wheel selection.
+    Select two individuals in the given population via roulette wheel selection. Attempts to avoid breeding individual
+    with the highest fitness at a rate given by p_avoid.
 
     :param population: The population to search
+    :param p_avoid: The probability that for any given individual
     :return: A tuple containing the selected individuals
     """
     ind_1, ind_2 = None, None
 
     # Calculate the total fitness of the population
-    total_fitness = 0
+    total_fitness, highest_fitness = 0, 0
+    best_ind = None
     for individual in population:
         total_fitness += individual.get_fitness()
+        if individual.get_fitness() > highest_fitness:
+            best_ind = individual
 
     # Select individuals
     while ind_2 is None:
         for individual in population:
             if random.random() <= individual.get_fitness()/total_fitness:
+                if individual == best_ind and random.random() <= p_avoid:
+                    continue
                 if ind_1 is None:
                     ind_1 = individual
                 else:
