@@ -34,12 +34,13 @@ def calculate_fitnesses(population: List[Individual]):
         individual.get_fitness()
 
 
-def run(generate: Callable[[], List[Individual]], p_c: float, p_m: float,
+def run(generate: Callable[[], List[Individual]], run_while: Callable[[Individual], bool], p_c: float, p_m: float,
         p_avoid: float) -> Individual:
-    """
-    Run the genetic algorithm.
+    """Run the genetic algorithm.
 
     :param generate: A function used to generate the initial population of data points
+    :param run_while: A function that takes in the best individual in a generation and outputs a boolean. The genetic
+    algorithm stops when this function returns false.
     :param p_c: The probability that an individual's gene will crossover with another individual's gene
     :param p_m: The probability that an individual's gene will be mutated
     :param p_avoid: The probability that the best individual in the population will not be selected for breeding
@@ -49,7 +50,7 @@ def run(generate: Callable[[], List[Individual]], p_c: float, p_m: float,
     population = generate()
     best_ind = population[0]
 
-    while best_ind.get_fitness() < 1:
+    while run_while(best_ind):
         calculate_fitnesses(population)
         new_pop = []
         for j in range(len(population)//2):
@@ -71,11 +72,10 @@ def run(generate: Callable[[], List[Individual]], p_c: float, p_m: float,
 
 
 def select(population: List[Individual], p_avoid: float) -> Tuple[Individual, Individual]:
-    """
-    Select two individuals in the given population via roulette wheel selection. Attempts to avoid breeding individual
-    with the highest fitness at a rate given by p_avoid.
+    """Select two individuals in the given population via roulette wheel selection. Selection will attempt to avoid
+    selecting the individual with the highest fitness at a rate given by p_avoid.
 
-    :param population: The population to search
+    :param population: The population to select from
     :param p_avoid: The probability that the individual with the highest fitness will not be selected
     :return: A tuple containing the selected individuals
     """

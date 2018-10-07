@@ -1,4 +1,6 @@
 from typing import Callable, Tuple
+from threading import Timer
+import _thread
 import genetic_algorithm
 import random
 import copy
@@ -44,14 +46,22 @@ class Password(genetic_algorithm.Individual):
         for i in range(len(self._char_list)):
             if random.random() <= p_m:
                 if random.random() <= 0.5:
-                    self._char_list[i] = chr(random.randint(65, 90))
-                else:
-                    self._char_list[i] = chr(random.randint(97, 122))
+                    self._char_list[i] = get_pass_char()
+
+
+def get_pass_char():
+    """Get a random character for a password."""
+    rnd = random.random()
+    if rnd < 1/3:
+        return chr(random.randint(48, 57))  # Digits
+    elif rnd < 2/3:
+        return chr(random.randint(65, 90))  # Uppercase letters
+    else:
+        return chr(random.randint(97, 122))  # Lowercase letters
 
 
 def guess_password(password_hash: int, num_chars: int, hash_func: Callable[[str], int]) -> str:
-    """
-    Attempts to find the string whose hash matches the given hash via a genetic algorithm.
+    """Attempt to find the string whose hash matches the given hash via a genetic algorithm.
 
     :param password_hash: The hash for the original password
     :param num_chars: How many characters to put in the generated passwords
@@ -59,17 +69,26 @@ def guess_password(password_hash: int, num_chars: int, hash_func: Callable[[str]
     :return: The optimal result produced by the genetic algorithm
     """
     def gen_passwords():
+        """Generate a list of random passwords."""
         population = []
         for i in range(500):
             char_list = []
             for j in range(num_chars):
-                if random.random() <= 0.5:
-                    char_list.append(chr(random.randint(65, 90)))
-                else:
-                    char_list.append(chr(random.randint(97, 122)))
+                char_list.append(get_pass_char())
             population.append(Password(char_list, password_hash, hash_func))
         return population
 
-    best_pass = genetic_algorithm.run(gen_passwords, 0.7, 0.04, 0.6)
+    # Uncomment the lines in main.py if you want to uncomment these
+    #def time_out():
+        #print("TIMEOUT ERROR: too much time has passed since beginning the reconstruction. This may have occurred "
+              #"because you entered an improper password length.")
+        #input("Press any key to exit.")
+        #_thread.interrupt_main()
+
+    #tmr = Timer(30.0, time_out)
+
+    #tmr.start()
+    best_pass = genetic_algorithm.run(gen_passwords, lambda best: best.get_fitness() < 1, 0.7, 0.04, 0.6)
+    #tmr.cancel()
 
     return str(best_pass)
