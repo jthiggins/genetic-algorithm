@@ -86,6 +86,7 @@ def select(population: List[Individual], p_avoid: float) -> Tuple[Individual, In
         total_fitness += individual.get_fitness()
         if individual.get_fitness() > highest_fitness:
             best_ind = individual
+            highest_fitness = individual.get_fitness()
 
     # Select individuals
     while ind_2 is None:
