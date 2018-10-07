@@ -1,5 +1,5 @@
 import hash
-import password.password_guess as password_guess
+from password import password_guess
 
 
 # Comment these lines out if you want to uncomment the lines below

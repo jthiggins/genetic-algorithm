@@ -66,8 +66,6 @@ def run(generate: Callable[[], List[Individual]], run_while: Callable[[Individua
             new_pop.append(child_2)
         population = new_pop
 
-    best_ind._fitness = None
-    best_ind.get_fitness()
     return best_ind
 
 

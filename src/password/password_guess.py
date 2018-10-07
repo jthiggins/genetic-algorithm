@@ -45,8 +45,7 @@ class Password(genetic_algorithm.Individual):
     def mutate(self, p_m: float):
         for i in range(len(self._char_list)):
             if random.random() <= p_m:
-                if random.random() <= 0.5:
-                    self._char_list[i] = get_pass_char()
+                self._char_list[i] = get_pass_char()
 
 
 def get_pass_char():
