@@ -34,23 +34,22 @@ def calculate_fitnesses(population: List[Individual]):
         individual.get_fitness()
 
 
-def run(generate: Callable[[], List[Individual]], min_fitness: float, p_c: float, p_m: float,
-        p_avoid: float) -> List[Individual]:
+def run(generate: Callable[[], List[Individual]], p_c: float, p_m: float,
+        p_avoid: float) -> Individual:
     """
-    Run the genetic algorithm for the specified number of iterations.
+    Run the genetic algorithm.
 
     :param generate: A function used to generate the initial population of data points
-    :param min_fitness: The minimum fitness permitted for the best individual in the final generation
     :param p_c: The probability that an individual's gene will crossover with another individual's gene
     :param p_m: The probability that an individual's gene will be mutated
     :param p_avoid: The probability that the best individual in the population will not be selected for breeding
-    :return: The last generation of data points
+    :return: The best individual in the final generation
     """
 
     population = generate()
     best_ind = population[0]
 
-    while best_ind.get_fitness() < min_fitness:
+    while best_ind.get_fitness() < 1:
         calculate_fitnesses(population)
         new_pop = []
         for j in range(len(population)//2):
@@ -60,13 +59,15 @@ def run(generate: Callable[[], List[Individual]], min_fitness: float, p_c: float
             child_2.mutate(p_m)
             if child_1.get_fitness() > best_ind.get_fitness():
                 best_ind = child_1
-            elif child_2.get_fitness() > best_ind.get_fitness():
+            if child_2.get_fitness() > best_ind.get_fitness():
                 best_ind = child_2
             new_pop.append(child_1)
             new_pop.append(child_2)
         population = new_pop
 
-    return population
+    best_ind._fitness = None
+    best_ind.get_fitness()
+    return best_ind
 
 
 def select(population: List[Individual], p_avoid: float) -> Tuple[Individual, Individual]:

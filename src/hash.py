@@ -7,6 +7,6 @@ def simple_hash(s: str) -> int:
     """
     i = 0
     for c in s:
-        i = ord(c) + ((i << 5) + i)
+        i = ord(c) + ((i << 7) - i)
 
     return i
