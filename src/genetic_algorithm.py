@@ -13,11 +13,12 @@ class Individual(ABC):
         pass
 
     @abstractmethod
-    def crossover(self, other: 'Individual', p_c: float):
-        """Crossover genes with another individual.
+    def crossover(self, other: 'Individual', p_c: float) -> Tuple['Individual', 'Individual']:
+        """Create two children with another individual by crossing over genes.
 
         :param other: The other individual to crossover with
         :param p_c: The probability that a given gene will be crossed with the other's gene
+        :return: A tuple containing the children
         """
         pass
 
@@ -27,13 +28,19 @@ class Individual(ABC):
         pass
 
 
-def run(generate: Callable[[], List[Individual]], num_iterations: int, p_c: float, p_m: float,
+def calculate_fitnesses(population: List[Individual]):
+    """Force all members of the given population to calculate their fitness values."""
+    for individual in population:
+        individual.get_fitness()
+
+
+def run(generate: Callable[[], List[Individual]], min_fitness: float, p_c: float, p_m: float,
         p_avoid: float) -> List[Individual]:
     """
     Run the genetic algorithm for the specified number of iterations.
 
     :param generate: A function used to generate the initial population of data points
-    :param num_iterations: The number of iterations the genetic algorithm will run for
+    :param min_fitness: The minimum fitness permitted for the best individual in the final generation
     :param p_c: The probability that an individual's gene will crossover with another individual's gene
     :param p_m: The probability that an individual's gene will be mutated
     :param p_avoid: The probability that the best individual in the population will not be selected for breeding
@@ -41,12 +48,23 @@ def run(generate: Callable[[], List[Individual]], num_iterations: int, p_c: floa
     """
 
     population = generate()
+    best_ind = population[0]
 
-    for i in range(num_iterations):
-        ind_1, ind_2 = select(population, p_avoid)
-        ind_1.crossover(ind_2, p_c)
-        ind_1.mutate(p_m)
-        ind_2.mutate(p_m)
+    while best_ind.get_fitness() < min_fitness:
+        calculate_fitnesses(population)
+        new_pop = []
+        for j in range(len(population)//2):
+            ind_1, ind_2 = select(population, p_avoid)
+            child_1, child_2 = ind_1.crossover(ind_2, p_c)
+            child_1.mutate(p_m)
+            child_2.mutate(p_m)
+            if child_1.get_fitness() > best_ind.get_fitness():
+                best_ind = child_1
+            elif child_2.get_fitness() > best_ind.get_fitness():
+                best_ind = child_2
+            new_pop.append(child_1)
+            new_pop.append(child_2)
+        population = new_pop
 
     return population
 
@@ -57,7 +75,7 @@ def select(population: List[Individual], p_avoid: float) -> Tuple[Individual, In
     with the highest fitness at a rate given by p_avoid.
 
     :param population: The population to search
-    :param p_avoid: The probability that for any given individual
+    :param p_avoid: The probability that the individual with the highest fitness will not be selected
     :return: A tuple containing the selected individuals
     """
     ind_1, ind_2 = None, None

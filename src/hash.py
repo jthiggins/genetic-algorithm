@@ -5,9 +5,8 @@ def simple_hash(s: str) -> int:
     :param s: The string to hash
     :return: The hash of the given string
     """
-    i, shift = 0, 0
+    i = 0
     for c in s:
-        i += ord(c)*32 << shift
-        shift += 2
+        i = ord(c) + ((i << 5) + i)
 
     return i
